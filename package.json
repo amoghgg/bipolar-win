@@ -1,25 +1,22 @@
 {
-  "name": "switchboard",
+  "name": "bipolar-win",
   "productName": "Bipolar",
   "version": "0.1.0",
-  "description": "Terminal workspace with separate Office and Personal sections",
+  "description": "Bipolar for Windows: terminal workspace with separate Office and Personal sections",
   "main": "main.js",
   "private": true,
   "scripts": {
     "start": "electron .",
-    "rebuild": "electron-rebuild -f -w node-pty",
-    "package": "electron-packager . Bipolar --platform=darwin --arch=arm64 --overwrite --out=dist --icon=build/icon.icns --app-bundle-id=com.amoghbajpai.switchboard --no-asar --extend-info=build/Info.extra.plist --ignore=^/dist --ignore=^/\\.git && rm -rf /Applications/Bipolar.app && cp -R dist/Bipolar-darwin-arm64/Bipolar.app /Applications/ && chmod +x /Applications/Bipolar.app/Contents/Resources/app/node_modules/node-pty/prebuilds/darwin-*/spawn-helper",
     "postinstall": "node -e \"if(process.platform==='darwin')for(const a of ['arm64','x64'])try{require('fs').chmodSync('node_modules/node-pty/prebuilds/darwin-'+a+'/spawn-helper',0o755)}catch{}\"",
-    "package:win": "npm run build:win && cd dist && rm -f Bipolar-Windows-x64.zip && ditto -c -k --keepParent Bipolar-win32-x64 Bipolar-Windows-x64.zip",
-    "build:win": "electron-packager . Bipolar --platform=win32 --arch=x64 --overwrite --out=dist --icon=build/icon.ico --no-asar --win32metadata.CompanyName=Bipolar --win32metadata.FileDescription=Bipolar --win32metadata.ProductName=Bipolar --ignore=^/dist --ignore=^/\\.git --ignore=prebuilds/darwin- --ignore=prebuilds/win32-arm64 --ignore=\\.pdb$ --ignore=node_modules/@mediapipe --ignore=renderer/mesh.mjs --ignore=renderer/assets --ignore=^/test --ignore=^/\\.github",
-    "test:win": "node test/e2e-win.js"
+    "build": "electron-packager . Bipolar --platform=win32 --arch=x64 --overwrite --out=dist --icon=build/icon.ico --no-asar --win32metadata.CompanyName=Bipolar --win32metadata.FileDescription=Bipolar --win32metadata.ProductName=Bipolar --ignore=^/dist --ignore=^/\\.git --ignore=prebuilds/darwin- --ignore=prebuilds/win32-arm64 --ignore=\\.pdb$ --ignore=node_modules/@mediapipe --ignore=^/test --ignore=^/\\.github",
+    "test": "node test/e2e-win.js",
+    "package": "npm run build && cd dist && rm -rf Bipolar Bipolar-Windows-x64.zip && cp -R Bipolar-win32-x64 Bipolar && ditto -c -k --keepParent Bipolar Bipolar-Windows-x64.zip && rm -rf Bipolar"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@fontsource-variable/jetbrains-mono": "^5.3.0",
     "@fontsource/instrument-serif": "^5.3.0",
-    "@mediapipe/tasks-vision": "^1.0.1",
     "@xterm/addon-clipboard": "^0.2.0",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/addon-search": "^0.16.0",

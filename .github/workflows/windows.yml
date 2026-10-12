@@ -17,9 +17,9 @@ jobs:
           irm https://claude.ai/install.ps1 | iex
           "$env:USERPROFILE\.local\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
       - run: claude --version
-      - run: npm run build:win
+      - run: npm run build
       - name: End-to-end test on Windows
-        run: node test/e2e-win.js
+        run: npm test
         env:
           BIPOLAR_E2E_DIR: ${{ github.workspace }}/e2e-out
           SWITCHBOARD_ONSCREEN: '1'
