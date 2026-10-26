@@ -1,7 +1,7 @@
 /* ============================================================================
    Bipolar — "Two poles of light"
    The room itself is the interface: glacier light pours in from the left when you
-   are in Office, peach light from the right in Personal, and switching sweeps the
+   are in Office, peach light in Personal, and switching sweeps the
    light across. The terminal floats on it as a dark glass slab; the sidebar is
    type set directly on light, like an index — no grey panels anywhere.
    ========================================================================== */
@@ -17,9 +17,9 @@ body { background: #07070a; }
 #aurora .office i:nth-child(1) { width: 62vmax; height: 62vmax; left: -6%; top: 2%; background: radial-gradient(circle, rgba(var(--o1),.75), transparent 64%); animation: a1 24s ease-in-out infinite alternate; }
 #aurora .office i:nth-child(2) { width: 48vmax; height: 48vmax; left: 16%; top: 46%; background: radial-gradient(circle, rgba(var(--o2),.6), transparent 64%); animation: a2 29s ease-in-out infinite alternate; }
 #aurora .office i:nth-child(3) { width: 34vmax; height: 34vmax; left: 4%; top: 60%; background: radial-gradient(circle, rgba(var(--o3),.32), transparent 64%); animation: a3 21s ease-in-out infinite alternate; }
-#aurora .personal i:nth-child(1) { width: 62vmax; height: 62vmax; right: -6%; top: 6%; background: radial-gradient(circle, rgba(var(--p1),.75), transparent 64%); animation: a2 26s ease-in-out infinite alternate; }
-#aurora .personal i:nth-child(2) { width: 48vmax; height: 48vmax; right: 18%; top: 48%; background: radial-gradient(circle, rgba(var(--p2),.58), transparent 64%); animation: a1 31s ease-in-out infinite alternate; }
-#aurora .personal i:nth-child(3) { width: 34vmax; height: 34vmax; right: 2%; top: 62%; background: radial-gradient(circle, rgba(var(--p3),.3), transparent 64%); animation: a3 23s ease-in-out infinite alternate; }
+#aurora .personal i:nth-child(1) { width: 62vmax; height: 62vmax; left: -6%; top: 6%; background: radial-gradient(circle, rgba(var(--p1),.75), transparent 64%); animation: a2 26s ease-in-out infinite alternate; }
+#aurora .personal i:nth-child(2) { width: 48vmax; height: 48vmax; left: 18%; top: 48%; background: radial-gradient(circle, rgba(var(--p2),.58), transparent 64%); animation: a1 31s ease-in-out infinite alternate; }
+#aurora .personal i:nth-child(3) { width: 34vmax; height: 34vmax; left: 2%; top: 62%; background: radial-gradient(circle, rgba(var(--p3),.3), transparent 64%); animation: a3 23s ease-in-out infinite alternate; }
 @keyframes a1 { to { transform: translate(7vmax, 5vmax) scale(1.1); } }
 @keyframes a2 { to { transform: translate(-6vmax, -4vmax) scale(.92); } }
 @keyframes a3 { to { transform: translate(4vmax, -6vmax) scale(1.06); } }
