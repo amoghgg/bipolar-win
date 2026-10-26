@@ -30,6 +30,40 @@ const TINTS = {
 };
 
 
+// The light behind each section: three soft lights per pole, picked in Settings → Light.
+const LIGHTS = [
+  { id: 'glacier', name: 'Glacier', c: ['147,228,246', '198,182,255', '185,243,211'] },
+  { id: 'lagoon', name: 'Lagoon', c: ['94,234,212', '103,200,255', '167,243,208'] },
+  { id: 'ocean', name: 'Ocean', c: ['96,165,250', '125,211,252', '165,180,252'] },
+  { id: 'aurora', name: 'Aurora', c: ['134,239,172', '94,234,212', '192,132,252'] },
+  { id: 'mint', name: 'Mint', c: ['170,240,206', '147,228,246', '232,226,160'] },
+  { id: 'moss', name: 'Moss', c: ['190,242,100', '110,231,183', '253,230,138'] },
+  { id: 'citrus', name: 'Citrus', c: ['253,230,138', '190,242,100', '253,186,116'] },
+  { id: 'dusk', name: 'Dusk', c: ['255,186,165', '246,168,217', '243,196,111'] },
+  { id: 'ember', name: 'Ember', c: ['251,146,60', '248,113,113', '252,211,77'] },
+  { id: 'rose', name: 'Rose gold', c: ['253,164,175', '254,215,170', '244,114,182'] },
+  { id: 'sakura', name: 'Sakura', c: ['251,182,206', '216,180,254', '253,214,222'] },
+  { id: 'violet', name: 'Violet', c: ['167,139,250', '232,121,249', '129,140,248'] },
+  { id: 'moon', name: 'Moonlight', c: ['203,213,225', '186,198,255', '226,232,240'] },
+];
+const LIGHT_DEFAULT = { office: 'glacier', personal: 'dusk' };
+const LIGHT_VAR = { office: 'o', personal: 'p' };
+const lightOf = (section) => LIGHTS.find((l) => l.id === (cfg.ui.light || {})[section]) || LIGHTS.find((l) => l.id === LIGHT_DEFAULT[section]);
+function applyLights() {
+  let css = ':root {';
+  for (const sec of Object.keys(LIGHT_VAR)) lightOf(sec).c.forEach((c, i) => { css += ` --${LIGHT_VAR[sec]}${i + 1}: ${c};`; });
+  css += ' }';
+  // the section's accent (underlines, focus rings) follows its light
+  for (const sec of Object.keys(LIGHT_VAR)) { const [a, b] = lightOf(sec).c; css += ` body[data-section='${sec}'] { --a1: rgb(${a}); --a2: rgb(${b}); }`; }
+  let el = document.getElementById('light-css');
+  if (!el) { el = document.createElement('style'); el.id = 'light-css'; document.head.appendChild(el); }
+  el.textContent = css;
+}
+function renderLights() {
+  $('#set-light').innerHTML = Object.keys(LIGHT_VAR).map((sec) => `<div class="lt-row"><span>${LABEL[sec]}</span><div class="lt-sws">${LIGHTS.map((l) =>
+    `<button class="lt-sw ${lightOf(sec).id === l.id ? 'on' : ''}" data-light="${l.id}" data-sec="${sec}" title="${esc(l.name)}" style="--l1:rgb(${l.c[0]});--l2:rgb(${l.c[1]});--l3:rgb(${l.c[2]})"></button>`).join('')}</div></div>`).join('');
+}
+
 // ------------------------------------------------------------------ state
 let cfg;
 let env;
@@ -1352,6 +1386,7 @@ function openSettings() {
   $('#set-font').textContent = cfg.ui.fontSize;
   $('#set-meta').checked = cfg.ui.optionIsMeta;
   $('#set-notify').checked = cfg.ui.notify;
+  renderLights();
   $('#hooks-state').innerHTML = env.hooks
     ? 'On. Claude reports exactly when it is working, waiting for permission, or done.'
     : 'Estimated from terminal activity. For exact status, let Bipolar add its hook to Claude Code’s settings (your current settings are backed up first). <button id="hooks-on" class="pill-btn">Turn on</button>';
@@ -1381,6 +1416,12 @@ $('#settings').addEventListener('click', (e) => {
   if (e.target.id === 'settings' || e.target.closest('[data-close]')) return closeOverlay($('#settings'));
   const f = e.target.closest('[data-font]');
   if (f) { setFont(+f.dataset.font); $('#set-font').textContent = cfg.ui.fontSize; }
+  const l = e.target.closest('[data-light]');
+  if (l) {
+    cfg.ui.light = { ...(cfg.ui.light || {}), [l.dataset.sec]: l.dataset.light };
+    persist(); applyLights(); renderLights();
+    if (l.dataset.sec !== active) setSection(l.dataset.sec); // show the light you just picked
+  }
 });
 $('#set-meta').addEventListener('change', (e) => {
   cfg.ui.optionIsMeta = e.target.checked;
@@ -1623,6 +1664,7 @@ if (IS_WIN) {
   cfg.ui.font = cfg.ui.font || (IS_WIN ? 'cascadia' : 'sfmono'); // the system terminal's font by default
   await Promise.all(["13px 'SF Mono Terminal'", "bold 13px 'SF Mono Terminal'", "13px 'JetBrains Mono'", "13px 'Geist Mono'"].map((f) => document.fonts.load(f).catch(() => {})));
   env = await sb.env();
+  applyLights();
   if (cfg.ui.sideW) document.documentElement.style.setProperty('--side-w', cfg.ui.sideW + 'px');
   if (cfg.ui.sidebarHidden) document.body.classList.add('no-sidebar');
   const hello = await sb.hello();

@@ -9,15 +9,17 @@
 body { background: #07070a; }
 
 /* ---------------------------------------------------------------- the light */
+/* each pole's three lights are chosen in Settings → Light (LIGHTS in renderer.js) */
+:root { --o1: 147,228,246; --o2: 198,182,255; --o3: 185,243,211; --p1: 255,186,165; --p2: 246,168,217; --p3: 243,196,111; }
 #aurora { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 #aurora .pole { position: absolute; inset: -25%; transition: opacity 1.4s cubic-bezier(.2,.8,.2,1), transform 1.6s cubic-bezier(.2,.8,.2,1); }
 #aurora .pole i { position: absolute; border-radius: 50%; filter: blur(80px); mix-blend-mode: screen; }
-#aurora .office i:nth-child(1) { width: 62vmax; height: 62vmax; left: -6%; top: 2%; background: radial-gradient(circle, rgba(147,228,246,.75), transparent 64%); animation: a1 24s ease-in-out infinite alternate; }
-#aurora .office i:nth-child(2) { width: 48vmax; height: 48vmax; left: 16%; top: 46%; background: radial-gradient(circle, rgba(198,182,255,.6), transparent 64%); animation: a2 29s ease-in-out infinite alternate; }
-#aurora .office i:nth-child(3) { width: 34vmax; height: 34vmax; left: 4%; top: 60%; background: radial-gradient(circle, rgba(185,243,211,.32), transparent 64%); animation: a3 21s ease-in-out infinite alternate; }
-#aurora .personal i:nth-child(1) { width: 62vmax; height: 62vmax; right: -6%; top: 6%; background: radial-gradient(circle, rgba(255,186,165,.75), transparent 64%); animation: a2 26s ease-in-out infinite alternate; }
-#aurora .personal i:nth-child(2) { width: 48vmax; height: 48vmax; right: 18%; top: 48%; background: radial-gradient(circle, rgba(246,168,217,.58), transparent 64%); animation: a1 31s ease-in-out infinite alternate; }
-#aurora .personal i:nth-child(3) { width: 34vmax; height: 34vmax; right: 2%; top: 62%; background: radial-gradient(circle, rgba(243,196,111,.3), transparent 64%); animation: a3 23s ease-in-out infinite alternate; }
+#aurora .office i:nth-child(1) { width: 62vmax; height: 62vmax; left: -6%; top: 2%; background: radial-gradient(circle, rgba(var(--o1),.75), transparent 64%); animation: a1 24s ease-in-out infinite alternate; }
+#aurora .office i:nth-child(2) { width: 48vmax; height: 48vmax; left: 16%; top: 46%; background: radial-gradient(circle, rgba(var(--o2),.6), transparent 64%); animation: a2 29s ease-in-out infinite alternate; }
+#aurora .office i:nth-child(3) { width: 34vmax; height: 34vmax; left: 4%; top: 60%; background: radial-gradient(circle, rgba(var(--o3),.32), transparent 64%); animation: a3 21s ease-in-out infinite alternate; }
+#aurora .personal i:nth-child(1) { width: 62vmax; height: 62vmax; right: -6%; top: 6%; background: radial-gradient(circle, rgba(var(--p1),.75), transparent 64%); animation: a2 26s ease-in-out infinite alternate; }
+#aurora .personal i:nth-child(2) { width: 48vmax; height: 48vmax; right: 18%; top: 48%; background: radial-gradient(circle, rgba(var(--p2),.58), transparent 64%); animation: a1 31s ease-in-out infinite alternate; }
+#aurora .personal i:nth-child(3) { width: 34vmax; height: 34vmax; right: 2%; top: 62%; background: radial-gradient(circle, rgba(var(--p3),.3), transparent 64%); animation: a3 23s ease-in-out infinite alternate; }
 @keyframes a1 { to { transform: translate(7vmax, 5vmax) scale(1.1); } }
 @keyframes a2 { to { transform: translate(-6vmax, -4vmax) scale(.92); } }
 @keyframes a3 { to { transform: translate(4vmax, -6vmax) scale(1.06); } }
