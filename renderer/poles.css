@@ -255,3 +255,31 @@ body::after { opacity: .085; z-index: 95; }
 body.win #tabbar { padding-right: 150px; }
 body.win.no-sidebar #tabbar { padding-left: 14px; }
 body.win #tabbar .tab-actions { -webkit-app-region: no-drag; }
+<<<<<<< HEAD
+=======
+
+/* ---------------------------------------------------------------- the third pole: Agents
+   Mint light rises from below; the other two poles dim to a trace. */
+#aurora .agents { opacity: 0; transform: translateY(18%); }
+#aurora .agents i:nth-child(1) { width: 60vmax; height: 60vmax; left: 18%; bottom: -14%; background: radial-gradient(circle, rgba(var(--m1),.62), transparent 64%); animation: a1 27s ease-in-out infinite alternate; }
+#aurora .agents i:nth-child(2) { width: 44vmax; height: 44vmax; left: -4%; bottom: 8%; background: radial-gradient(circle, rgba(var(--m2),.42), transparent 64%); animation: a3 23s ease-in-out infinite alternate; }
+#aurora .agents i:nth-child(3) { width: 36vmax; height: 36vmax; right: 6%; bottom: 2%; background: radial-gradient(circle, rgba(var(--m3),.26), transparent 64%); animation: a2 30s ease-in-out infinite alternate; }
+body[data-section='agents'] #aurora .agents { opacity: 1; transform: none; }
+body[data-section='agents'] #aurora .office { opacity: .06; transform: translateX(-22%); }
+body[data-section='agents'] #aurora .personal { opacity: .06; transform: translateX(22%); }
+body[data-section='agents'] .st.working::before { border-top-color: #aaf0ce; border-right-color: #93e4f6; }
+
+/* three words in the index: the current one stays large, the others wrap onto a quiet line */
+#seg { flex-wrap: wrap; row-gap: 6px; }
+
+/* agent and watcher rows */
+.task.agent-def .t-line, .task.watcher .t-line { color: var(--text-3); }
+.task.watcher.err .t-line { color: var(--waiting); }
+.task.watcher.off .t-name { color: var(--text-2); }
+
+/* sidebar toggle: sits before the task name; shown dimmed until hovered */
+#side-btn { flex: none; margin-right: 2px; color: var(--text-3); }
+#side-btn:hover { color: var(--text); }
+body.no-sidebar #side-btn { color: var(--text-2); }
+#tabbar .tab-actions { margin-left: auto; }
+>>>>>>> ba3d164 (Sidebar toggle button beside the task name (same as ⌘B))

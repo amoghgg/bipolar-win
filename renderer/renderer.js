@@ -1561,6 +1561,7 @@ function menuAction(action, arg) {
     case 'toggle-sidebar':
       document.body.classList.toggle('no-sidebar');
       cfg.ui.sidebarHidden = document.body.classList.contains('no-sidebar');
+      sideBtnTitle();
       setTimeout(() => t && refit(t), 280);
       persist();
       break;
@@ -1710,6 +1711,8 @@ $('#changes-btn').addEventListener('click', openDrawer);
 $('#add').addEventListener('click', () => addProject());
 $('#home-shell').addEventListener('click', () => openTab(active, { name: 'Home', path: '~' }));
 $('#settings-btn').addEventListener('click', openSettings);
+function sideBtnTitle() { $('#side-btn').title = keyLabel(document.body.classList.contains('no-sidebar') ? 'Show sidebar (⌘B)' : 'Hide sidebar (⌘B)'); }
+$('#side-btn').addEventListener('click', () => menuAction('toggle-sidebar'));
 $('#new-tab').addEventListener('click', () => menuAction('new-tab'));
 $('#close-btn').addEventListener('click', () => menuAction('close-tab'));
 $('#split-btn').addEventListener('click', (e) => splitPane(e.shiftKey ? 'col' : 'row'));
@@ -1735,6 +1738,7 @@ if (IS_WIN) {
   applyLights();
   if (cfg.ui.sideW) document.documentElement.style.setProperty('--side-w', cfg.ui.sideW + 'px');
   if (cfg.ui.sidebarHidden) document.body.classList.add('no-sidebar');
+  sideBtnTitle();
   const hello = await sb.hello();
   const alive = new Set(hello.panes.map((x) => x.id));
   const saved = cfg.session || {};
