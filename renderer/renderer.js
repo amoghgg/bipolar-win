@@ -986,17 +986,64 @@ function setTabTheme(tab, id) {
     toast(THEMES.get(id).light ? 'Light paper: Claude switches to its light theme the next time this task starts' : 'Dark theme: Claude switches back to dark on its next start');
   }
 }
-function themeCard(th, on) {
-  const c = th.colors;
-  return `<button class="th ${on ? 'on' : ''}" data-theme="${th.id}" style="--bg:${c.background};--fg:${c.foreground};--g:${c.green};--y:${c.yellow};--b:${c.blue};--m:${c.magenta};--r:${c.red}">
-    <span class="th-prev"><b>~ %</b> claude<br><i style="color:var(--g)">✓</i> tests passed<br><i style="color:var(--y)">●</i> <i style="color:var(--b)">2 files</i> <i style="color:var(--r)">−3</i></span>
-    <span class="th-name">${esc(th.name)}</span></button>`;
+// Colour wheels: hue around the disc, saturation outwards, brightness on the slider.
+const wheel = { bg: null, fg: null }; // {h, s, v} being edited, for the current task
+const hsvHex = ({ h, s, v }) => {
+  const f = (n) => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); };
+  return '#' + [f(5), f(3), f(1)].map((x) => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+};
+const hexHsv = (hex) => {
+  const n = parseInt(hex.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const v = Math.max(r, g, b), d = v - Math.min(r, g, b);
+  const h = d === 0 ? 0 : v === r ? 60 * (((g - b) / d) % 6) : v === g ? 60 * ((b - r) / d + 2) : 60 * ((r - g) / d + 4);
+  return { h: (h + 360) % 360, s: v ? d / v : 0, v };
+};
+const contrast = (a, b) => {
+  const lin = (hex) => { const n = parseInt(hex.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255].map((c) => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; }).reduce((s, c, i) => s + c * [0.2126, 0.7152, 0.0722][i], 0); };
+  const [x, y] = [lin(a), lin(b)].sort((m, n) => n - m);
+  return (x + 0.05) / (y + 0.05);
+};
+function drawWheel(el, c) {
+  const cv = el.querySelector('canvas'), ctx = cv.getContext('2d'), R = cv.width / 2;
+  const img = ctx.createImageData(cv.width, cv.height);
+  for (let y = 0; y < cv.height; y++) for (let x = 0; x < cv.width; x++) {
+    const dx = x - R, dy = y - R, r = Math.hypot(dx, dy);
+    if (r > R) continue;
+    const hex = hsvHex({ h: (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360, s: r / R, v: c.v });
+    const n = parseInt(hex.slice(1), 16), o = (y * cv.width + x) * 4;
+    img.data[o] = n >> 16; img.data[o + 1] = (n >> 8) & 255; img.data[o + 2] = n & 255; img.data[o + 3] = r > R - 1 ? 255 * (R - r) : 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+function paintWheels(redraw) {
+  for (const which of ['bg', 'fg']) {
+    const el = $(`.cw[data-which="${which}"]`), c = wheel[which], hex = hsvHex(c);
+    if (redraw === true || redraw === which) drawWheel(el, c);
+    const a = c.h * Math.PI / 180;
+    el.querySelector('.cw-dot').style.cssText = `left:${50 + 50 * c.s * Math.cos(a)}%;top:${50 + 50 * c.s * Math.sin(a)}%;background:${hex}`;
+    el.querySelector('.cw-v').value = Math.round(c.v * 100);
+    el.querySelector('.cw-v').style.setProperty('--cw-full', hsvHex({ ...c, v: 1 }));
+    if (document.activeElement !== el.querySelector('.cw-hex')) el.querySelector('.cw-hex').value = hex;
+  }
+  const th = THEMES.get(`custom:${hsvHex(wheel.bg)}:${hsvHex(wheel.fg)}`), k = th.colors;
+  const pv = $('#cw-prev');
+  pv.style.cssText = `--bg:${k.background};--fg:${k.foreground}`;
+  pv.innerHTML = `<b>~ %</b> claude<br><i style="color:${k.green}">✓</i> tests passed<br><i style="color:${k.yellow}">●</i> <i style="color:${k.blue}">2 files</i> <i style="color:${k.red}">−3</i>`;
+  const r = contrast(k.background, k.foreground);
+  $('#cw-contrast').textContent = r < 3 ? `Hard to read (contrast ${r.toFixed(1)}:1)` : r < 4.5 ? `Readable, a bit soft (${r.toFixed(1)}:1)` : `Easy to read (${r.toFixed(1)}:1)`;
+  $('#cw-contrast').classList.toggle('warn', r < 3);
+}
+// Live while dragging; saved (and Claude's light/dark checked) when you let go.
+function wheelApply(save) {
+  const t = currentTab(); if (!t) return;
+  const id = `custom:${hsvHex(wheel.bg)}:${hsvHex(wheel.fg)}`;
+  if (save) setTabTheme(t, id); else { t.theme = id; applyTheme(t); }
 }
 function openThemes() {
   const t = currentTab();
-  const groups = ['Pastels', 'Apple Terminal', 'Loved', 'Bipolar'];
-  $('#th-groups').innerHTML = groups.map((g) => `<h4>${g === 'Apple Terminal' ? (IS_WIN ? 'From the Mac’s Terminal' : 'Your Mac’s Terminal') : g === 'Loved' ? 'Loved by everyone' : g}</h4>
-    <div class="th-grid">${THEMES.list.filter((x) => x.group === g).map((x) => themeCard(x, t && t.theme === x.id)).join('')}</div>`).join('');
+  const c = THEMES.get(t?.theme).colors;
+  wheel.bg = hexHsv(c.background); wheel.fg = hexHsv(c.foreground);
+  paintWheels(true);
   $('#th-fonts').innerHTML = THEMES.FONTS.map((f) => `<button class="fnt ${cfg.ui.font === f.id ? 'on' : ''}" data-font="${f.id}" style="font-family:${f.css}">${esc(f.name)}<small>${esc(f.note)}</small></button>`).join('');
   $('#th-auto').checked = cfg.ui.autoPastel !== false;
   $('#th-sub').textContent = t ? `for “${sessLabel(t)}”` : 'pick a task first';
@@ -1004,10 +1051,31 @@ function openThemes() {
   el.hidden = false;
   el.classList.remove('closing');
 }
+let themeBefore = null; // the task's theme when a drag started, so the light/dark toast compares against it
+for (const el of $$('.cw')) {
+  const which = el.dataset.which, disc = el.querySelector('.cw-disc');
+  const pick = (e) => {
+    const r = disc.getBoundingClientRect(), dx = e.clientX - r.left - r.width / 2, dy = e.clientY - r.top - r.height / 2;
+    wheel[which] = { ...wheel[which], h: (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360, s: Math.min(1, Math.hypot(dx, dy) / (r.width / 2)) };
+    paintWheels(); wheelApply(false);
+  };
+  let dragging = false;
+  disc.addEventListener('pointerdown', (e) => { try { disc.setPointerCapture(e.pointerId); } catch {} dragging = true; themeBefore = currentTab()?.theme; pick(e); });
+  disc.addEventListener('pointermove', (e) => { if (dragging) pick(e); });
+  disc.addEventListener('pointerup', () => { if (!dragging) return; dragging = false; const t = currentTab(); if (t && themeBefore) t.theme = themeBefore; wheelApply(true); });
+  const v = el.querySelector('.cw-v');
+  v.addEventListener('pointerdown', () => { themeBefore = currentTab()?.theme; });
+  v.addEventListener('input', () => { wheel[which] = { ...wheel[which], v: v.value / 100 }; paintWheels(which); wheelApply(false); });
+  v.addEventListener('change', () => { const t = currentTab(); if (t && themeBefore) t.theme = themeBefore; wheelApply(true); });
+  el.querySelector('.cw-hex').addEventListener('input', (e) => {
+    const m = /^#?([0-9a-f]{6})$/i.exec(e.target.value.trim());
+    if (!m) return;
+    wheel[which] = hexHsv('#' + m[1].toLowerCase()); paintWheels(which); wheelApply(true);
+  });
+}
+$('#cw-reset').addEventListener('click', () => { const t = currentTab(); if (t) setTabTheme(t, 'night'); openThemes(); });
 $('#themes').addEventListener('click', (e) => {
   if (e.target.id === 'themes' || e.target.closest('[data-close]')) return closeOverlay($('#themes'));
-  const th = e.target.closest('[data-theme]')?.dataset.theme;
-  if (th) { const t = currentTab(); if (t) setTabTheme(t, th); return openThemes(); }
   const f = e.target.closest('[data-font]')?.dataset.font;
   if (f) {
     cfg.ui.font = f;

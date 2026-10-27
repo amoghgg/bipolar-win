@@ -161,7 +161,13 @@
   <div id="themes" class="overlay" hidden>
     <div class="sheet themes" role="dialog" aria-label="Colour and font">
       <header><div><h3>Colour &amp; font</h3><small id="th-sub"></small></div><button class="icon-btn close" data-close><svg viewBox="0 0 20 20"><path d="m5.5 5.5 9 9M14.5 5.5l-9 9"/></svg></button></header>
-      <div id="th-groups"></div>
+      <div class="cw-wrap">
+        <div class="cw" data-which="bg"><h4>Background</h4><div class="cw-disc"><canvas width="360" height="360"></canvas><i class="cw-dot"></i></div>
+          <input type="range" class="cw-v" min="0" max="100" aria-label="Background brightness" /><input class="cw-hex" spellcheck="false" maxlength="7" aria-label="Background hex" /></div>
+        <div class="cw" data-which="fg"><h4>Text</h4><div class="cw-disc"><canvas width="360" height="360"></canvas><i class="cw-dot"></i></div>
+          <input type="range" class="cw-v" min="0" max="100" aria-label="Text brightness" /><input class="cw-hex" spellcheck="false" maxlength="7" aria-label="Text hex" /></div>
+        <div class="cw-side"><h4>Preview</h4><div id="cw-prev" class="th-prev"></div><small id="cw-contrast"></small><button id="cw-reset" class="pill-btn">Back to Bipolar Night</button></div>
+      </div>
       <h4>Font</h4>
       <div id="th-fonts"></div>
       <label class="th-auto"><input type="checkbox" id="th-auto" class="toggle" /><span><b>Every new task gets its own pastel</b><small>Like keeping each Terminal window a different colour, but automatic, and the colour follows the task into the sidebar.</small></span></label>

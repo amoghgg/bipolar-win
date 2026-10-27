@@ -16,6 +16,11 @@ const THEMES = (() => {
     black: '#2b2b33', red: '#c2415d', green: '#2f8a5b', yellow: '#a8741a', blue: '#3768c4', magenta: '#9a4fb5', cyan: '#1f8a99', white: '#7d7d8a',
     brightBlack: '#55555f', brightRed: '#d6506e', brightGreen: '#3aa36d', brightYellow: '#c48a22', brightBlue: '#4a7fe0', brightMagenta: '#b061cc', brightCyan: '#2aa3b3', brightWhite: '#3a3a44',
   };
+  // Soft ANSI colours that read well on dark backgrounds.
+  const nightAnsi = {
+    black: '#1a1a22', red: '#ff8c9b', green: '#8de6b8', yellow: '#f3c46f', blue: '#93b8ff', magenta: '#d4b0ff', cyan: '#93e4f6', white: '#d6d2e0',
+    brightBlack: '#5f5b70', brightRed: '#ffa8b4', brightGreen: '#aef0cd', brightYellow: '#f8d591', brightBlue: '#b3ceff', brightMagenta: '#e3c9ff', brightCyan: '#b5eefa', brightWhite: '#ffffff',
+  };
   const t = (id, name, group, light, base, ansi) => ({ id, name, group, light, colors: { ...ansi, ...base } });
   const pastel = (id, name, bg, fg, accent) => t(id, name, 'Pastels', true, {
     background: bg, foreground: fg, cursor: accent, cursorAccent: bg,
@@ -30,10 +35,7 @@ const THEMES = (() => {
     t('night', 'Bipolar Night', 'Bipolar', false, {
       background: '#0b0b0f', foreground: '#e6e2ee', cursor: '#eeeaf4', cursorAccent: '#0b0b0f',
       selectionBackground: 'rgba(198, 182, 255, 0.28)', selectionInactiveBackground: 'rgba(236,232,255,0.1)',
-    }, {
-      black: '#1a1a22', red: '#ff8c9b', green: '#8de6b8', yellow: '#f3c46f', blue: '#93b8ff', magenta: '#d4b0ff', cyan: '#93e4f6', white: '#d6d2e0',
-      brightBlack: '#5f5b70', brightRed: '#ffa8b4', brightGreen: '#aef0cd', brightYellow: '#f8d591', brightBlue: '#b3ceff', brightMagenta: '#e3c9ff', brightCyan: '#b5eefa', brightWhite: '#ffffff',
-    }),
+    }, nightAnsi),
 
     pastel('glacier', 'Glacier', '#dcf0f6', '#1d2b33', '#2f7ea0'),
     pastel('peach', 'Peach', '#fbe3d8', '#3a2219', '#c25a3a'),
@@ -82,5 +84,18 @@ const THEMES = (() => {
     { id: 'jetbrains', name: 'JetBrains Mono', css: "'JetBrains Mono', Menlo, monospace", note: 'for code' },
     { id: 'geist', name: 'Geist Mono', css: "'Geist Mono', Menlo, monospace", note: 'Bipolar' },
   ];
-  return { list, byId, PASTELS, FONTS, get: (id) => byId[id] || byId.night };
+  // A colour picked on the wheels is stored on the task as "custom:<bg>:<fg>".
+  const luminance = (hex) => { const n = parseInt(hex.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
+  const custom = (bg, fg) => {
+    const light = luminance(bg) > 0.5;
+    return t(`custom:${bg}:${fg}`, 'Custom', 'Custom', light, {
+      background: bg, foreground: fg, cursor: fg, cursorAccent: bg,
+      selectionBackground: fg + '40', selectionInactiveBackground: fg + '22',
+    }, light ? inkAnsi : nightAnsi);
+  };
+  const get = (id) => {
+    const m = /^custom:(#[0-9a-f]{6}):(#[0-9a-f]{6})$/i.exec(id || '');
+    return m ? custom(m[1].toLowerCase(), m[2].toLowerCase()) : byId[id] || byId.night;
+  };
+  return { list, byId, PASTELS, FONTS, get, luminance };
 })();
