@@ -83,7 +83,7 @@ const modKey = (e) => (IS_WIN ? e.ctrlKey : e.metaKey); // ⌘ on the Mac, Ctrl 
 // Shortcut labels are written Mac-style; on Windows show what the Windows menu actually binds.
 const WIN_LABELS = { '⇧⌘C': 'Ctrl+Shift+G', '⇧⌘D': 'Alt+Shift+-', '⇧⌘W': 'Ctrl+Shift+W', '⇧⌘T': 'Ctrl+Shift+A', '⌥⌘Q': '',
   '⌘N': 'Ctrl+Shift+N', '⌘P': 'Ctrl+Shift+P', '⌘1': 'Ctrl+1', '⌘2': 'Ctrl+2', '⌘,': 'Ctrl+,', '⌘E': 'Ctrl+Shift+E',
-  '⌘T': 'Ctrl+Shift+T', '⌘D': 'Alt+Shift+=', '⌘B': 'Ctrl+Shift+B', '⌘↵': 'Ctrl+Enter', '⌥↵': 'Alt+Enter', '⌘Q': 'closing the window', '⌘-click': 'Ctrl+click' };
+  '⌘T': 'Ctrl+Shift+T', '⌘O': 'Ctrl+Shift+O', '⌘D': 'Alt+Shift+=', '⌘B': 'Ctrl+Shift+B', '⌘↵': 'Ctrl+Enter', '⌥↵': 'Alt+Enter', '⌘Q': 'closing the window', '⌘-click': 'Ctrl+click' };
 const keyLabel = (s) => (IS_WIN ? String(s).replace(/⌘-click|[⇧⌥]*⌘[^\s)·]|⌥↵/g, (k) => WIN_LABELS[k] ?? k) : s);
 const isClaudeProc = (p) => p === 'claude' || /^\d+\.\d+\.\d+/.test(p || '');
 const tabOf = (paneId) => tabs.find((t) => leaves(t.root).includes(paneId));
@@ -663,6 +663,7 @@ function renderCrumb() {
   $('#theme-btn').style.setProperty('--sw', th.colors.background);
   $('#theme-btn').style.setProperty('--sw2', th.colors.foreground);
   $('#theme-btn').hidden = !t;
+  $('#files-btn').hidden = !t;
   const p = t && panes.get(t.focus);
   const c = t && changes[t.path];
   const cb = $('#changes-btn');
@@ -1386,6 +1387,7 @@ function paletteSource() {
   const cmd = (title, icon, run, sub = '') => items.push({ group: 'Commands', key: title, title, sub: keyLabel(sub), icon: `<span class="ic">${icon}</span>`, run });
   cmd('New Claude session here', ICON.spark, () => menuAction('new-claude'), '⇧⌘T');
   cmd('New shell here', ICON.prompt, () => menuAction('new-tab'), '⌘T');
+  cmd('Add files…', ICON.plus, () => menuAction('add-files'), '⌘O');
   cmd('Split right', ICON.split, () => splitPane('row'), '⌘D');
   cmd('Split down', ICON.splitd, () => splitPane('col'), '⇧⌘D');
   cmd(`Switch to ${LABEL[active === 'office' ? 'personal' : 'office']}`, ICON.swap, () => setSection(active === 'office' ? 'personal' : 'office'), active === 'office' ? '⌘2' : '⌘1');
@@ -1548,6 +1550,7 @@ function menuAction(action, arg) {
   switch (action) {
     case 'section': setSection(arg); break;
     case 'new-tab': openTab(active, proj); break;
+    case 'add-files': addFiles(); break;
     case 'new-claude': openTab(active, proj, { claude: true }); break;
     case 'split': splitPane(arg); break;
     case 'close-pane': if (p) requestClosePane(p.id); break;
@@ -1640,6 +1643,17 @@ document.addEventListener('drop', (e) => {
   p.term.paste(paths.map(shq).join(' ') + ' ');
   p.term.focus();
 });
+// The same without Finder: pick files in a dialog, they land in the focused pane.
+async function addFiles() {
+  const p = focusedPane();
+  if (!p) return toast('Open a task first, then add files to it.');
+  const paths = await sb.pickFiles();
+  if (!paths.length) return p.term.focus();
+  revealPane(p.id);
+  p.term.paste(paths.map(shq).join(' ') + ' ');
+  p.term.focus();
+}
+$('#files-btn').addEventListener('click', addFiles);
 
 // ------------------------------------------------------------------ paste images
 // xterm only pastes text, so an image-only clipboard used to vanish. Do what Terminal does:

@@ -316,7 +316,7 @@ const WIN_KEYS = {
   'Close Pane': 'Ctrl+Shift+W', 'Close Tab': null, 'Clear Screen': 'Ctrl+Shift+K',
   'Select All': null, 'Find…': 'Ctrl+Shift+F',
   'Jump to Anything…': 'Ctrl+Shift+P', 'Next Task Waiting on You': 'Ctrl+Shift+J',
-  'Toggle Sidebar': 'Ctrl+Shift+B',
+  'Toggle Sidebar': 'Ctrl+Shift+B', 'Add Files…': 'Ctrl+Shift+O',
 };
 function forWindows(items) {
   return items.filter((it) => !['hide', 'hideOthers', 'unhide', 'about'].includes(it.role) && !(IS_WIN && it.label === 'Lock Bipolar')).map((it) => {
@@ -352,6 +352,7 @@ function buildMenu() {
       submenu: [
         { label: 'New Task…', accelerator: 'CmdOrCtrl+N', click: send('compose') },
         { label: 'New Shell Here', accelerator: 'CmdOrCtrl+T', click: send('new-tab') },
+        { label: 'Add Files…', accelerator: 'CmdOrCtrl+O', click: send('add-files') },
         { label: 'New Claude Here', accelerator: 'CmdOrCtrl+Shift+T', click: send('new-claude') },
         { type: 'separator' },
         { label: 'Archive Task', accelerator: 'CmdOrCtrl+E', click: send('archive') },
@@ -584,6 +585,23 @@ ipcMain.handle('clipboard:image', () => {
 });
 ipcMain.handle('clipboard:hasImage', () => !clipboard.readImage().isEmpty());
 
+// Add files: pick in a file dialog instead of dragging from Finder. Opens where you last
+// picked from (the Desktop the first time); the renderer pastes the paths like a drop.
+let lastFileDir = null;
+ipcMain.handle('dialog:files', async () => {
+  // Test runs answer the dialog themselves (a native dialog can't be driven off-screen).
+  if (process.env.SWITCHBOARD_SNAPSHOT && process.env.SWITCHBOARD_PICK) return process.env.SWITCHBOARD_PICK.split('|');
+  const r = await dialog.showOpenDialog(win, {
+    title: 'Add files',
+    buttonLabel: 'Add',
+    defaultPath: lastFileDir || path.join(HOME, 'Desktop'),
+    // Windows can't offer files and folders in one dialog; files matter more there.
+    properties: IS_WIN ? ['openFile', 'multiSelections'] : ['openFile', 'openDirectory', 'multiSelections'],
+  });
+  if (r.canceled || !r.filePaths.length) return [];
+  lastFileDir = path.dirname(r.filePaths[0]);
+  return r.filePaths;
+});
 ipcMain.handle('dialog:folder', async () => {
   const r = await dialog.showOpenDialog(win, { properties: ['openDirectory', 'createDirectory'], defaultPath: HOME });
   return r.canceled || !r.filePaths[0] ? null : tildify(r.filePaths[0]);
