@@ -441,7 +441,7 @@ ipcMain.handle('config:get', () => loadConfig());
 ipcMain.on('config:save', (_e, cfg) => saveConfig(cfg));
 // Light Claude theme for pastel tasks, as a settings file (PowerShell mangles inline JSON).
 const LIGHT_SETTINGS = path.join(CONFIG_DIR, 'claude-light.json');
-// First name of the Mac's account ("Nitya Sharma" → "Nitya"), offered when Bipolar first asks for a name.
+// First name of the Mac's account ("Jane Doe" → "Jane"), offered when Bipolar first asks for a name.
 function accountName() {
   let n = '';
   if (!IS_WIN) try { n = require('child_process').execFileSync('id', ['-F'], { encoding: 'utf8', timeout: 2000 }).trim(); } catch {}
