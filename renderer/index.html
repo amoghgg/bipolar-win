@@ -17,7 +17,11 @@
       <div class="pt-clock"><span id="pt-time"></span><span id="pt-date"></span></div>
     </header>
     <main class="pt-center">
-      <h1><em id="pt-greet">Welcome</em>, Amogh.</h1>
+      <h1><em id="pt-greet">Welcome</em><span id="pt-name">.</span></h1>
+      <form id="pt-who" hidden autocomplete="off">
+        <input id="pt-who-name" maxlength="32" spellcheck="false" placeholder="Your first name" aria-label="Your name" />
+        <button class="pt-btn primary" type="submit">Continue <kbd>↵</kbd></button>
+      </form>
       <div class="fid" id="pt-fid" data-state="idle" aria-hidden="true">
         <svg viewBox="0 0 120 120">
           <defs><linearGradient id="fidHolo" x1="0" y1="0" x2="1" y2="1">
@@ -203,6 +207,8 @@
           <input type="checkbox" id="set-meta" class="toggle" /></label>
         <label class="set-row"><div><b>Notifications</b><small>Tell me when Claude finishes or needs permission in a session I'm not looking at.</small></div>
           <input type="checkbox" id="set-notify" class="toggle" /></label>
+        <label class="set-row" id="set-name-row"><div><b>Your name</b><small>How the lock screen greets you.</small></div>
+          <input id="set-name" maxlength="32" spellcheck="false" /></label>
         <div class="set-row stacked"><div><b>Light</b><small>The colour behind each section.</small></div><div id="set-light"></div></div>
         <div class="set-row stacked"><div><b>Precise Claude status</b><small id="hooks-state"></small></div></div>
       </div>

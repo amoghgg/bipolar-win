@@ -18,6 +18,10 @@ const Portal = (() => {
   let mode = 'verify';
   let lastSim = 0;
   let onOpen = () => {};
+  let name = '';
+  let suggest = '';
+  let onName = () => {};
+  let naming = false;
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
   function greeting() {
@@ -65,7 +69,7 @@ const Portal = (() => {
   function stopScan() { scanToken++; running = false; stopCamera(); }
 
   async function scan() {
-    if (el('portal').hidden || el('portal').classList.contains('opening') || running) return;
+    if (naming || el('portal').hidden || el('portal').classList.contains('opening') || running) return;
     const token = ++scanToken;
     running = true;
     lastSim = 0;
@@ -141,7 +145,36 @@ const Portal = (() => {
     show('looking', 'Learned. Look again to open.', 'ok');
   }
 
+  // First time on this Mac: ask who's here before anything else.
+  function askName() {
+    naming = true;
+    el('portal').classList.add('naming');
+    el('pt-who').hidden = false;
+    const inp = el('pt-who-name');
+    inp.value = suggest;
+    show('looking', 'First, what should Bipolar call you?');
+    requestAnimationFrame(() => { inp.focus(); inp.select(); });
+  }
+  function saveName(e) {
+    e.preventDefault();
+    const n = el('pt-who-name').value.trim();
+    if (!n) return el('pt-who-name').focus();
+    name = n;
+    onName(n);
+    naming = false;
+    el('portal').classList.remove('naming');
+    el('pt-who').hidden = true;
+    greet();
+    show('looking', `Nice to meet you, ${n}.`, 'ok');
+    setTimeout(scan, 900);
+  }
+  function greet() {
+    el('pt-greet').textContent = name ? greeting() : 'Welcome';
+    el('pt-name').textContent = name ? `, ${name}.` : '.';
+  }
+
   async function touch() {
+    if (naming) return;
     show('verifying', 'Waiting for Touch ID…');
     const r = await sb.touchId();
     if (r.ok) return open('touch');
@@ -170,9 +203,10 @@ const Portal = (() => {
     const [q, who] = EPIGRAPHS[Math.floor(Date.now() / 864e5) % EPIGRAPHS.length];
     el('pt-quote').textContent = q;
     el('pt-quote-by').textContent = who;
-    el('pt-greet').textContent = greeting();
+    greet();
     tickClock();
     el('pt-enroll').hidden = true;
+    if (!name) return askName();
     show('looking', 'Locked. Move the mouse or press a key to look.');
     if (scanNow) scan();
   }
@@ -181,11 +215,15 @@ const Portal = (() => {
 
   function init(opts) {
     onOpen = opts.onOpen || onOpen;
+    name = opts.name || '';
+    suggest = opts.suggest || '';
+    onName = opts.onName || onName;
+    el('pt-who').addEventListener('submit', saveName);
     setInterval(tickClock, 10000);
     el('pt-touch').addEventListener('click', touch);
     el('pt-enroll').addEventListener('click', enroll);
     document.addEventListener('keydown', (e) => {
-      if (el('portal').hidden) return;
+      if (el('portal').hidden || naming) return;
       if (e.key === 'Enter' && e.metaKey) { e.preventDefault(); touch(); }
       else if (e.key === 'Enter' && mode === 'enroll' && !el('pt-enroll').hidden) { e.preventDefault(); enroll(); }
     }, true);
@@ -198,5 +236,7 @@ const Portal = (() => {
     document.addEventListener('keydown', (e) => { if (!(e.key === 'Enter' && e.metaKey)) activity(); }, true);
   }
 
-  return { init, lock, scan, stats, get locked() { return !el('portal').hidden; } };
+  function rename(n) { name = n; greet(); }
+
+  return { init, lock, scan, stats, rename, get locked() { return !el('portal').hidden; } };
 })();

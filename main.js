@@ -441,9 +441,16 @@ ipcMain.handle('config:get', () => loadConfig());
 ipcMain.on('config:save', (_e, cfg) => saveConfig(cfg));
 // Light Claude theme for pastel tasks, as a settings file (PowerShell mangles inline JSON).
 const LIGHT_SETTINGS = path.join(CONFIG_DIR, 'claude-light.json');
+// First name of the Mac's account ("Nitya Sharma" → "Nitya"), offered when Bipolar first asks for a name.
+function accountName() {
+  let n = '';
+  if (!IS_WIN) try { n = require('child_process').execFileSync('id', ['-F'], { encoding: 'utf8', timeout: 2000 }).trim(); } catch {}
+  n = (n || os.userInfo().username || '').split(/[\s._-]+/)[0];
+  return n.charAt(0).toUpperCase() + n.slice(1);
+}
 ipcMain.handle('env', () => {
   if (IS_WIN) try { if (!fs.existsSync(LIGHT_SETTINGS)) fs.writeFileSync(LIGHT_SETTINGS, '{"theme":"light"}'); } catch {}
-  return { home: HOME, version: app.getVersion(), hooks: hooksRegistered(), platform: process.platform, lightSettings: slash(LIGHT_SETTINGS), lock: !IS_WIN };
+  return { home: HOME, version: app.getVersion(), hooks: hooksRegistered(), platform: process.platform, lightSettings: slash(LIGHT_SETTINGS), lock: !IS_WIN, accountName: accountName() };
 });
 ipcMain.handle('hooks:register', () => { try { return registerHooks(); } catch (e) { return { ok: false, error: e.message }; } });
 ipcMain.handle('daemon:hello', async () => { if (!sock) await connectDaemon(); return hello(); });

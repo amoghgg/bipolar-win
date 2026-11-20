@@ -190,6 +190,18 @@ body.locked #app { filter: blur(28px) saturate(.6); transform: scale(.965); opac
 #pt-status[data-tone='ok'] { color: var(--done); }
 #pt-status[data-tone='warn'] { color: var(--waiting); }
 .pt-actions { display: flex; gap: 10px; }
+#portal.naming .fid, #portal.naming .pt-actions { display: none; }
+#pt-who { display: flex; gap: 10px; align-items: center; }
+#pt-who[hidden] { display: none; }
+#pt-who input {
+  width: 240px; height: 38px; padding: 0 18px; border: 0; border-radius: 99px; outline: 0;
+  font: 400 15px/1 var(--font-ui); color: var(--text); text-align: center;
+  background: rgba(236,232,255,.06); box-shadow: inset 0 0 0 1px rgba(236,232,255,.14);
+}
+#pt-who input:focus { box-shadow: inset 0 0 0 1.5px rgba(236,232,255,.4); }
+#pt-who input::placeholder { color: var(--text-3); }
+#set-name { width: 150px; height: 28px; padding: 0 10px; border: 0; border-radius: 7px; outline: 1px solid var(--line); background: var(--surface-2); font: inherit; color: var(--text); }
+#set-name:focus { outline: 1.5px solid var(--accent); }
 .pt-btn {
   display: inline-flex; align-items: center; gap: 10px; height: 38px; padding: 0 18px; border-radius: 99px;
   font: 500 12.5px/1 var(--font-ui); color: var(--text-2);

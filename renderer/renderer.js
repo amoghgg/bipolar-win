@@ -1457,6 +1457,7 @@ function openSettings() {
   $('#set-font').textContent = cfg.ui.fontSize;
   $('#set-meta').checked = cfg.ui.optionIsMeta;
   $('#set-notify').checked = cfg.ui.notify;
+  $('#set-name').value = cfg.ui.name || '';
   renderLights();
   $('#hooks-state').innerHTML = env.hooks
     ? 'On. Claude reports exactly when it is working, waiting for permission, or done.'
@@ -1500,6 +1501,11 @@ $('#set-meta').addEventListener('change', (e) => {
   persist();
 });
 $('#set-notify').addEventListener('change', (e) => { cfg.ui.notify = e.target.checked; persist(); });
+$('#set-name').addEventListener('change', (e) => {
+  const n = e.target.value.trim();
+  if (!n) { e.target.value = cfg.ui.name || ''; return; }
+  cfg.ui.name = n; Portal.rename(n); persist();
+});
 
 function setFont(delta) {
   cfg.ui.fontSize = delta === 0 ? 13 : Math.max(9, Math.min(26, cfg.ui.fontSize + delta));
@@ -1739,17 +1745,22 @@ if (IS_WIN) {
   for (const el of $$('[title]')) el.title = keyLabel(el.title);
   const meta = $('#set-meta')?.closest('.set-row');
   if (meta) meta.hidden = true; // Alt already acts as Meta on Windows
+  $('#set-name-row').hidden = true; // the name only greets you on the Mac lock screen
 }
 
 (async function boot() {
-  Portal.init({ onOpen: () => { focusedPane()?.term.focus(); const t = currentTab(); if (t) requestAnimationFrame(() => refit(t)); } });
+  cfg = await sb.getConfig();
+  env = await sb.env();
+  Portal.init({
+    onOpen: () => { focusedPane()?.term.focus(); const t = currentTab(); if (t) requestAnimationFrame(() => refit(t)); },
+    name: cfg.ui.name, suggest: env.accountName,
+    onName: (n) => { cfg.ui.name = n; persist(); },
+  });
   // Windows build: no lock screen at all, straight into work.
   if (IS_WIN) { $('#portal').hidden = true; document.body.classList.remove('locked'); }
   else Portal.lock({ scanNow: true }); // just opened Bipolar: you're here, look straight away
-  cfg = await sb.getConfig();
   cfg.ui.font = cfg.ui.font || (IS_WIN ? 'cascadia' : 'sfmono'); // the system terminal's font by default
   await Promise.all(["13px 'SF Mono Terminal'", "bold 13px 'SF Mono Terminal'", "13px 'JetBrains Mono'", "13px 'Geist Mono'"].map((f) => document.fonts.load(f).catch(() => {})));
-  env = await sb.env();
   applyLights();
   if (cfg.ui.sideW) document.documentElement.style.setProperty('--side-w', cfg.ui.sideW + 'px');
   if (cfg.ui.sidebarHidden) document.body.classList.add('no-sidebar');
