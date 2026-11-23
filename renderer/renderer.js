@@ -813,6 +813,8 @@ function setSection(s, { quiet = false } = {}) {
   if (changed) {
     const ul = $('#tree');
     ul.classList.remove('stagger'); void ul.offsetWidth; ul.classList.add('stagger');
+    // Rows slide in once on a section switch, never again on later updates.
+    clearTimeout(ul._stagger); ul._stagger = setTimeout(() => ul.classList.remove('stagger'), 900);
   }
   renderProjects();
   if (!quiet) showTab(current[s] || tabs.find((t) => t.section === s)?.id);
@@ -907,7 +909,7 @@ function renderSidebar() {
     + group('shells', 'Shells', shells, { foldable: true })
     + group('archive', 'Archive', archived, { foldable: true, archive: true });
   if (!mine.length && !needs.length) html = `<li class="hint-row">No tasks in ${LABEL[active]} yet. Start one with ${keyLabel('⌘N')}.</li>` + html;
-  if (ul.dataset.html !== html) { ul.innerHTML = html; ul.dataset.html = html; }
+  if (ul.dataset.html !== html) { patchList(ul, html); ul.dataset.html = html; }
   for (const s of SECTIONS) {
     $(`#seg button[data-section="${s}"]`).classList.toggle('alert', s !== active && needs.some((t) => t.section === s));
   }
