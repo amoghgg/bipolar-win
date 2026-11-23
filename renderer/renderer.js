@@ -914,6 +914,33 @@ function renderSidebar() {
     $(`#seg button[data-section="${s}"]`).classList.toggle('alert', s !== active && needs.some((t) => t.section === s));
   }
 }
+// Update the list in place: rows are matched by task / agent / watcher, and only the text and
+// attributes that changed are touched. Rebuilding it whole every few seconds (a timer ticking,
+// a status line changing) restarted every spinner and dropped the hover.
+const rowKey = (n) => n.dataset.tab ? 't' + n.dataset.tab : n.dataset.agent ? 'a' + n.dataset.agent
+  : n.dataset.watch ? 'w' + n.dataset.watch : n.classList.contains('grp') ? 'g' + n.classList[1] : 'h' + n.outerHTML;
+function morph(from, to) {
+  if (from.nodeType !== to.nodeType || from.nodeName !== to.nodeName) return from.replaceWith(to);
+  if (from.nodeType !== 1) { if (from.nodeValue !== to.nodeValue) from.nodeValue = to.nodeValue; return; }
+  for (const a of [...from.attributes]) if (!to.hasAttribute(a.name)) from.removeAttribute(a.name);
+  for (const a of to.attributes) if (from.getAttribute(a.name) !== a.value) from.setAttribute(a.name, a.value);
+  const was = [...from.childNodes], now = [...to.childNodes];
+  now.forEach((n, i) => (was[i] ? morph(was[i], n) : from.appendChild(n)));
+  for (const n of was.slice(now.length)) n.remove();
+}
+function patchList(ul, html) {
+  const next = document.createElement('ul');
+  next.innerHTML = html;
+  const old = new Map([...ul.children].map((n) => [rowKey(n), n]));
+  let at = ul.firstElementChild;
+  for (const n of [...next.children]) {
+    const k = rowKey(n), keep = old.get(k);
+    old.delete(k);
+    if (keep) { morph(keep, n); if (keep !== at) ul.insertBefore(keep, at); else at = at.nextElementSibling; }
+    else ul.insertBefore(n, at);
+  }
+  for (const n of old.values()) n.remove();
+}
 function archRow(a) {
   return `<li class="task archived" data-arch="${esc(a.id)}" title="Click to resume this conversation">
     <i class="st idle"></i>
