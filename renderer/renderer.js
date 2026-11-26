@@ -161,6 +161,12 @@ function makePane({ id, section, name, path }) {
     minimumContrastRatio: 1,
     drawBoldTextInBrightColors: false,
     theme: THEMES.get('night').colors,
+    // Real links (OSC 8), e.g. Claude's artifact and docs links: a click opens them in the browser.
+    linkHandler: {
+      activate: (e, uri) => sb.openExternal(uri),
+      hover: (e, uri) => { host.title = `Click to open ${uri}`; },
+      leave: () => { host.title = ''; },
+    },
   });
   const fit = new FitAddon.FitAddon();
   const search = new SearchAddon.SearchAddon();
@@ -170,8 +176,8 @@ function makePane({ id, section, name, path }) {
   term.loadAddon(u11);
   term.unicode.activeVersion = '11';
   term.loadAddon(new ClipboardAddon.ClipboardAddon()); // OSC 52 copy, as in iTerm2
-  term.loadAddon(new WebLinksAddon.WebLinksAddon((e, uri) => { if (modKey(e)) sb.openExternal(uri); }, {
-    hover: (e, uri) => { host.title = keyLabel(`⌘-click to open ${uri}`); },
+  term.loadAddon(new WebLinksAddon.WebLinksAddon((e, uri) => sb.openExternal(uri), {
+    hover: (e, uri) => { host.title = `Click to open ${uri}`; },
     leave: () => { host.title = ''; },
   }));
   term.open(host);

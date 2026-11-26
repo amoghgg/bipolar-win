@@ -464,6 +464,7 @@ ipcMain.handle('pty:spawn', (_e, { id, cwd, cols, rows, section, command }) => {
     TERM: 'xterm-256color',
     COLORTERM: 'truecolor',
     TERM_PROGRAM: 'Bipolar',
+    FORCE_HYPERLINK: '1', // Bipolar opens real (OSC 8) links; without this Claude Code prints long links as broken plain text
     TERM_PROGRAM_VERSION: app.getVersion(),
     SWITCHBOARD_PANE: id,
     SWITCHBOARD_SECTION: section,
@@ -645,7 +646,10 @@ ipcMain.on('reveal', (_e, p) => shell.openPath(expand(p)));
 ipcMain.on('open-editor', (_e, p) => (IS_WIN
   ? spawnProc('cmd.exe', ['/d', '/c', 'code', expand(p)], { windowsHide: true, detached: true, stdio: 'ignore' }).on('error', () => {}).unref()
   : execFile('open', ['-a', 'Visual Studio Code', expand(p)])));
-ipcMain.on('open-external', (_e, url) => { if (/^https?:\/\//.test(url)) shell.openExternal(url); });
+ipcMain.on('open-external', (_e, url) => {
+  if (process.env.SWITCHBOARD_SNAPSHOT) return console.log('[open-external]', url); // test runs never open the browser
+  if (/^https?:\/\//.test(url)) shell.openExternal(url);
+});
 ipcMain.on('badge', (_e, n) => app.dock?.setBadge(n > 0 ? String(n) : ''));
 ipcMain.on('notify', (_e, { title, body, paneId }) => {
   if (!Notification.isSupported()) return;
